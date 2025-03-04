@@ -66,7 +66,7 @@ main {
     transform: translateY(-2px);
 }
 
-#note-form input,
+#note-form input:not(.task-checkbox),
 #note-form textarea {
     width: 100%;
     padding: var(--spacing-sm) 0;
@@ -77,7 +77,7 @@ main {
     color: var(--text-primary);
 }
 
-#note-form input {
+#note-form input:not(.task-checkbox) {
     font-family: "Montserrat", sans-serif;
     font-weight: 500;
     font-size: 1.1rem;
@@ -129,7 +129,7 @@ main {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 14px;
+    font-size: 15px;
     color: rgba(0, 0, 0, 0.6);
     font-weight: bold;
 }
@@ -209,7 +209,7 @@ main {
     opacity: 0;
 
     width: 220px;
-    height: auto;
+    max-height: 350px; 
     box-sizing: border-box;
     overflow: hidden;
 }
@@ -244,12 +244,9 @@ main {
     align-items: center;
     margin-top: auto;
     padding-top: var(--spacing-sm);
-    opacity: 0;
-    transition: opacity 0.2s ease, transform 0.2s ease;
-}
-
-.note-card:hover .note-actions {
+    padding-bottom: var(--spacing-sm);
     opacity: 1;
+    transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .edit-note,
@@ -260,7 +257,7 @@ main {
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    background-color: rgba(0, 0, 0, 0.04);
+    background-color: rgba(0, 0, 0);
     border: none;
     color: var(--text-secondary);
     cursor: pointer;
@@ -305,12 +302,8 @@ main {
     align-items: center;
     margin-top: auto;
     padding-top: var(--spacing-sm);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.note-card:hover .note-actions {
     opacity: 1;
+    transition: opacity 0.3s ease;
 }
 
 #note-form button {
@@ -360,7 +353,7 @@ main {
     opacity: 0;
 
     width: 220px;
-    height: auto;
+    max-height: 350px; 
     box-sizing: border-box;
     overflow: hidden;
 }
@@ -394,12 +387,8 @@ main {
     align-items: center;
     margin-top: auto;
     padding-top: var(--spacing-sm);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.note-card:hover .note-actions {
     opacity: 1;
+    transition: opacity 0.3s ease;
 }
 
 .delete-note {
@@ -884,6 +873,40 @@ main {
     display: flex;
     flex-direction: column;
     flex: 1;
+    overflow: hidden; 
+}
+
+.note-body {
+    max-height: 250px; 
+    overflow-y: auto; 
+    scrollbar-width: thin;
+    padding-right: 4px; 
+}
+
+
+.note-body::-webkit-scrollbar {
+    width: 4px;
+}
+
+.note-body::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+}
+
+.note-body::-webkit-scrollbar-thumb {
+    background-color: var(--border);
+    border-radius: 4px;
+}
+
+
+.note-footer {
+    margin-top: auto;
+    background-color: inherit; 
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    padding-top: var(--spacing-xs);
+    box-shadow: 0 -4px 6px -6px rgba(0, 0, 0, 0.1); 
 }
 
 @media (max-width: 768px) {
@@ -944,7 +967,6 @@ main {
     display: flex;
     align-items: flex-start;
     gap: var(--spacing-xs);
-    padding: var(--spacing-xs) 0;
 }
 
 .task-checkbox {
@@ -953,31 +975,6 @@ main {
     margin-top: 2px;
     cursor: pointer;
     accent-color: var(--primary);
-}
-
-.task-text {
-    font-size: 0.95rem;
-    color: var(--text-secondary);
-    line-height: 1.4;
-}
-
-.task-text.completed {
-    text-decoration: line-through;
-    opacity: 0.7;
-}
-
-.note-timestamp {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    opacity: 0.7;
-    margin-top: var(--spacing-sm);
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.note-body {
-    margin-bottom: var(--spacing-md);
 }
 
 .note-text {
@@ -1025,7 +1022,6 @@ main {
     display: flex;
     align-items: flex-start;
     gap: var(--spacing-xs);
-    padding: var(--spacing-xs) 0;
     position: relative;
     cursor: pointer;
 }
@@ -1040,6 +1036,7 @@ main {
     position: relative;
     z-index: 2;
     opacity: 1;
+    margin-bottom: 2px;
 }
 
 .task-checkbox::before {
@@ -1050,28 +1047,6 @@ main {
     right: -5px;
     bottom: -5px;
     z-index: -1;
-}
-
-.task-text {
-    font-size: 0.95rem;
-    color: var(--text-secondary);
-    line-height: 1.4;
-    transition: text-decoration 0.2s, opacity 0.2s;
-    padding: 0 0 2px 0;
-    flex: 1;
-}
-
-.task-text.completed {
-    text-decoration: line-through;
-    opacity: 0.7;
-}
-
-.task-item label {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-    cursor: pointer;
-    flex: 1;
 }
 
 #edit-modal .modal-body {
@@ -1102,7 +1077,6 @@ main {
     display: flex;
     align-items: flex-start;
     gap: var(--spacing-xs);
-    padding: var(--spacing-xs) 0;
     position: relative;
     cursor: pointer;
     border-radius: 4px;
@@ -1113,36 +1087,9 @@ main {
     background-color: rgba(0, 0, 0, 0.03);
 }
 
-.task-checkbox {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    min-width: 18px;
-    height: 18px;
-    border: 2px solid var(--border);
-    border-radius: 4px;
-    margin-top: 2px;
-    cursor: pointer;
-    position: relative;
-    vertical-align: middle;
-    outline: none;
-    transition: all 0.2s ease;
-}
-
 .task-checkbox:checked {
     background-color: var(--primary);
     border-color: var(--primary);
-}
-
-.task-checkbox:checked::after {
-    content: "";
-    position: absolute;
-    left: 5px;
-    width: 4px;
-    height: 9px;
-    border: solid white;
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
 }
 
 .task-checkbox:hover {
@@ -1162,17 +1109,7 @@ main {
 .task-text.completed {
     text-decoration: line-through;
     opacity: 0.7;
-    color: var(--text-secondary);
-}
-
-.task-item label {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--spacing-xs);
-    cursor: pointer;
-    flex: 1;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
+    color: var (--text-secondary);
 }
 
 #task-preview {
@@ -1202,9 +1139,7 @@ main {
     height: 16px;
 }
 
-
 @media (prefers-color-scheme: dark) {
-
     .task-checkbox {
         background-color: var(--bg-main);
         border-color: var(--border);
@@ -1250,6 +1185,7 @@ main {
     position: absolute;
     width: 3px;
     height: 10px;
+    left: 5px;
     border: solid white;
     border-width: 0 2px 2px 0;
     transform: rotate(45deg);
@@ -1258,9 +1194,16 @@ main {
 .note-footer {
     display: flex;
     justify-content: space-between;
-    align-items: flex-end;
-    margin-top: var(--spacing-sm);
+    align-items: center;
     width: 100%;
+    margin-top: auto;
+    background-color: inherit; 
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    padding-top: var(--spacing-xs);
+    
+    box-shadow: 0 -4px 6px -6px rgba(0, 0, 0, 0.1);
 }
 
 .note-timestamp {
@@ -1278,13 +1221,8 @@ main {
     gap: var(--spacing-xs);
     justify-content: flex-end;
     align-items: center;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-    margin-left: var(--spacing-sm);
-}
-
-.note-card:hover .note-actions {
     opacity: 1;
+    transition: opacity 0.2s ease;
 }
 
 .task-item label {
@@ -1348,6 +1286,27 @@ main {
     margin-bottom: var(--spacing-md);
     border-top: 1px dashed var(--border);
     padding-top: var(--spacing-sm);
+    max-height: 200px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    padding-right: 4px;
+}
+
+#task-preview::-webkit-scrollbar,
+#main-task-preview::-webkit-scrollbar {
+    width: 4px;
+}
+
+#task-preview::-webkit-scrollbar-track,
+#main-task-preview::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+}
+
+#task-preview::-webkit-scrollbar-thumb,
+#main-task-preview::-webkit-scrollbar-thumb {
+    background-color: var(--border);
+    border-radius: 4px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -1385,4 +1344,294 @@ main {
     #note-form .toolbar-btn:hover {
         background-color: rgba(255, 255, 255, 0.08);
     }
+}
+
+#form-error-msg {
+    color: #ea4335;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 4px;
+    background-color: rgba(234, 67, 53, 0.1);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+#modal-error-toast {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background-color: #ea4335;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 4px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1100;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+@media (prefers-color-scheme: dark) {
+    .note-body::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .note-body::-webkit-scrollbar-thumb {
+        background-color: var(--border);
+    }
+
+    #task-preview::-webkit-scrollbar-track,
+    #main-task-preview::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    #task-preview::-webkit-scrollbar-thumb,
+    #main-task-preview::-webkit-scrollbar-thumb {
+        background-color: var(--border);
+    }
+}
+
+
+.custom-scrollbar,
+.note-body,
+#task-preview,
+#main-task-preview,
+#edit-body {
+    
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) transparent;
+
+    
+    -ms-overflow-style: none; 
+}
+
+
+.custom-scrollbar::-webkit-scrollbar,
+.note-body::-webkit-scrollbar,
+#task-preview::-webkit-scrollbar,
+#main-task-preview::-webkit-scrollbar,
+#edit-body::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track,
+.note-body::-webkit-scrollbar-track,
+#task-preview::-webkit-scrollbar-track,
+#main-task-preview::-webkit-scrollbar-track,
+#edit-body::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb,
+.note-body::-webkit-scrollbar-thumb,
+#task-preview::-webkit-scrollbar-thumb,
+#main-task-preview::-webkit-scrollbar-thumb,
+#edit-body::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 6px;
+    opacity: 0.8;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover,
+.note-body::-webkit-scrollbar-thumb:hover,
+#task-preview::-webkit-scrollbar-thumb:hover,
+#main-task-preview::-webkit-scrollbar-thumb:hover,
+#edit-body::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-hover);
+}
+
+
+#task-preview,
+#main-task-preview {
+    position: relative;
+}
+
+#task-preview::after,
+#main-task-preview::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background: linear-gradient(to bottom, transparent, var(--bg-card));
+    pointer-events: none;
+    opacity: 0;
+}
+
+
+.note-body,
+#task-preview,
+#main-task-preview,
+#edit-body,
+body {
+    
+    scrollbar-width: thin;
+    scrollbar-color: rgba(66, 133, 244, 0.3) transparent;
+}
+
+
+.note-body::-webkit-scrollbar,
+#task-preview::-webkit-scrollbar,
+#main-task-preview::-webkit-scrollbar,
+#edit-body::-webkit-scrollbar,
+body::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.note-body::-webkit-scrollbar-track,
+#task-preview::-webkit-scrollbar-track,
+#main-task-preview::-webkit-scrollbar-track,
+#edit-body::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 3px;
+}
+
+.note-body::-webkit-scrollbar-thumb,
+#task-preview::-webkit-scrollbar-thumb,
+#main-task-preview::-webkit-scrollbar-thumb,
+#edit-body::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
+    background: rgba(66, 133, 244, 0.3);
+    border-radius: 20px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    transition: background-color 0.3s ease;
+}
+
+.note-body::-webkit-scrollbar-thumb:hover,
+#task-preview::-webkit-scrollbar-thumb:hover,
+#main-task-preview::-webkit-scrollbar-thumb:hover,
+#edit-body::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover {
+    background: rgba(66, 133, 244, 0.5);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+.note-body::-webkit-scrollbar-corner,
+#task-preview::-webkit-scrollbar-corner,
+#main-task-preview::-webkit-scrollbar-corner,
+#edit-body::-webkit-scrollbar-corner,
+body::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+
+.note-card .note-body::-webkit-scrollbar-thumb {
+    background: rgba(66, 133, 244, 0.2);
+}
+
+.note-card:hover .note-body::-webkit-scrollbar-thumb {
+    background: rgba(66, 133, 244, 0.4);
+}
+
+
+#task-preview:not(:hover)::-webkit-scrollbar-thumb,
+#main-task-preview:not(:hover)::-webkit-scrollbar-thumb {
+    background: rgba(66, 133, 244, 0.2);
+}
+
+
+.note-body.scrollable::after,
+#task-preview.scrollable::after,
+#main-task-preview.scrollable::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 8px; 
+    height: 24px;
+    background: linear-gradient(to bottom, transparent, var(--bg-card));
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+
+@media (prefers-color-scheme: dark) {
+    .note-body,
+    #task-preview,
+    #main-task-preview,
+    #edit-body,
+    body {
+        scrollbar-color: rgba(100, 150, 240, 0.3) transparent;
+    }
+
+    .note-body::-webkit-scrollbar-thumb,
+    #task-preview::-webkit-scrollbar-thumb,
+    #main-task-preview::-webkit-scrollbar-thumb,
+    #edit-body::-webkit-scrollbar-thumb,
+    body::-webkit-scrollbar-thumb {
+        background: rgba(100, 150, 240, 0.3);
+    }
+
+    .note-body::-webkit-scrollbar-thumb:hover,
+    #task-preview::-webkit-scrollbar-thumb:hover,
+    #main-task-preview::-webkit-scrollbar-thumb:hover,
+    #edit-body::-webkit-scrollbar-thumb:hover,
+    body::-webkit-scrollbar-thumb:hover {
+        background: rgba(100, 150, 240, 0.5);
+    }
+
+    .note-card .note-body::-webkit-scrollbar-thumb {
+        background: rgba(100, 150, 240, 0.2);
+    }
+
+    .note-card:hover .note-body::-webkit-scrollbar-thumb {
+        background: rgba(100, 150, 240, 0.4);
+    }
+
+    
+    .note-body.scrollable::after,
+    #task-preview.scrollable::after,
+    #main-task-preview.scrollable::after {
+        background: linear-gradient(to bottom, transparent, var(--bg-card));
+    }
+
+    
+    .note-white .note-body.scrollable::after {
+        background: linear-gradient(to bottom, transparent, var(--note-white));
+    }
+    .note-red .note-body.scrollable::after {
+        background: linear-gradient(to bottom, transparent, var(--note-red));
+    }
+    .note-orange .note-body.scrollable::after {
+        background: linear-gradient(to bottom, transparent, var(--note-orange));
+    }
+    .note-yellow .note-body.scrollable::after {
+        background: linear-gradient(to bottom, transparent, var(--note-yellow));
+    }
+    .note-green .note-body.scrollable::after {
+        background: linear-gradient(to bottom, transparent, var(--note-green));
+    }
+    .note-teal .note-body.scrollable::after {
+        background: linear-gradient(to bottom, transparent, var(--note-teal));
+    }
+    .note-blue .note-body.scrollable::after {
+        background: linear-gradient(to bottom, transparent, var(--note-blue));
+    }
+    .note-purple .note-body.scrollable::after {
+        background: linear-gradient(to bottom, transparent, var(--note-purple));
+    }
+}
+
+
+.note-body {
+    position: relative;
+    padding-right: 8px; 
+}
+
+
+.note-body p,
+.note-body .task-list {
+    margin-bottom: var(--spacing-md);
+}
+
+.note-body p:last-child,
+.note-body .task-list:last-child {
+    margin-bottom: 0; 
 }
