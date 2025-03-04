@@ -8,6 +8,21 @@
             content="A simple and beautiful notes application"
         />
         <title>Simple Notes</title>
+        <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
+        <script>
+            if (typeof hljs === "undefined") {
+                window.hljs = {
+                    highlightElement: function () {},
+                    getLanguage: function () {
+                        return false;
+                    },
+                    highlight: function (code) {
+                        return { value: code };
+                    },
+                };
+                console.warn("Highlight.js not loaded, using fallback");
+            }
+        </script>
         <link rel="stylesheet" href="style.css" />
     </head>
     <body>
@@ -18,7 +33,10 @@
                     id="note-title"
                     placeholder="Title"
                     aria-label="Note title"
+                    maxlength="60"
+                    title="Maximum title length is 60 characters"
                 />
+                <span class="char-count" id="note-title-charcount"></span>
                 <textarea
                     id="note-body"
                     placeholder="Take a note..."
@@ -52,13 +70,14 @@
                     </button>
                 </div>
                 <div class="form-actions">
-                    <div class="color-options" aria-label="Note color options">
-                    </div>
+                    <div
+                        class="color-options"
+                        aria-label="Note color options"
+                    ></div>
                     <button id="add-note" aria-label="Add note">Done</button>
                 </div>
             </section>
-            <section id="notes-list" aria-label="Your notes">
-            </section>
+            <section id="notes-list" aria-label="Your notes"></section>
         </main>
 
         <div
@@ -84,7 +103,10 @@
                         id="edit-title"
                         placeholder="Title"
                         aria-label="Edit note title"
+                        maxlength="80"
+                        title="Maximum title length is 80 characters"
                     />
+                    <span class="char-count" id="edit-title-charcount"></span>
                     <textarea
                         id="edit-body"
                         placeholder="Note content..."
@@ -123,8 +145,7 @@
                         <div
                             class="color-options edit-color-options"
                             aria-label="Note color options"
-                        >
-                        </div>
+                        ></div>
                         <button id="save-edit" aria-label="Save changes">
                             Save
                         </button>
@@ -177,32 +198,105 @@
 
         <div id="modal-backdrop" aria-hidden="true"></div>
 
-        <script src="script.js"></script>
+        <script>
+            window.marked = window.marked || {
+                parse: function (text) {
+                    return text;
+                },
+                setOptions: function () {},
+            };
+
+            try {
+                marked.setOptions({
+                    breaks: true,
+                    gfm: true,
+                    headerIds: false,
+                    highlight: function (code, lang) {
+                        if (typeof hljs !== "undefined" && hljs.getLanguage) {
+                            const language = hljs.getLanguage(lang)
+                                ? lang
+                                : "plaintext";
+                            return hljs.highlight(code, { language }).value;
+                        }
+                        return code;
+                    },
+                });
+                console.log("Markdown parser initialized");
+            } catch (err) {
+                console.warn("Error initializing Markdown parser:", err);
+            }
+        </script>
+
         <script src="masonry.js"></script>
+        <script src="script.js"></script>
+
         <script>
             document.addEventListener("DOMContentLoaded", function () {
                 console.log("Document ready, waiting for fonts to load...");
 
+                if (!window.noteMasonry) {
+                    console.log("noteMasonry not initialized yet, waiting...");
+                }
+
                 document.fonts.ready.then(() => {
                     console.log("Fonts loaded");
 
-                    if (!window.masonryInitialized) {
-                        window.masonryInitialized = true;
-                        setTimeout(() => {
-                            console.log("Attempting layout refresh...");
-                            if (window.noteMasonry) {
-                                window.noteMasonry.refresh();
+                    setTimeout(() => {
+                        if (window.noteMasonry) {
+                            console.log("Refreshing masonry layout");
+                            window.noteMasonry.refresh();
+                        } else {
+                            console.warn("noteMasonry still not available");
+                            if (typeof NoteMasonry === "function") {
+                                console.log("Creating noteMasonry instance");
+                                const computedStyle = getComputedStyle(
+                                    document.documentElement
+                                );
+                                const spacingMd =
+                                    parseFloat(
+                                        computedStyle.getPropertyValue(
+                                            "--spacing-md"
+                                        ) || "1rem"
+                                    ) * 16;
+
+                                window.noteMasonry = new NoteMasonry(
+                                    "#notes-list",
+                                    {
+                                        minColumnWidth:
+                                            window.innerWidth < 640 ? 160 : 220,
+                                        maxColumns: 5,
+                                        gutter: spacingMd,
+                                        animated: true,
+                                    }
+                                );
                             }
-                        }, 500);
-                    }
+                        }
+                    }, 300);
                 });
             });
 
             window.addEventListener("load", function () {
-                console.log("Window loaded");
+                console.log("Window loaded, refreshing layout");
                 setTimeout(() => {
                     if (window.noteMasonry) {
                         window.noteMasonry.refresh();
+                    } else if (typeof NoteMasonry === "function") {
+                        const computedStyle = getComputedStyle(
+                            document.documentElement
+                        );
+                        const spacingMd =
+                            parseFloat(
+                                computedStyle.getPropertyValue(
+                                    "--spacing-md"
+                                ) || "1rem"
+                            ) * 16;
+
+                        window.noteMasonry = new NoteMasonry("#notes-list", {
+                            minColumnWidth: window.innerWidth < 640 ? 160 : 220,
+                            maxColumns: 5,
+                            gutter: spacingMd,
+                            animated: true,
+                        });
                     }
                 }, 200);
             });

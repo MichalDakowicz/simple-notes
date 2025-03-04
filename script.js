@@ -15,7 +15,6 @@ document.addEventListener("DOMContentLoaded", () => {
         textarea.style.height = "auto";
         textarea.style.height = textarea.scrollHeight + "px";
 
-        
         updateMainFormTaskPreview(textarea.value);
     });
 
@@ -28,6 +27,59 @@ document.addEventListener("DOMContentLoaded", () => {
     setupColorPicker();
 
     initModals();
+
+    const noteFormTextarea = document.getElementById("note-body");
+    const markdownHint = document.createElement("div");
+    markdownHint.className = "markdown-hint";
+    markdownHint.innerHTML = "<i>Markdown formatting supported</i>";
+    markdownHint.style.fontSize = "0.8rem";
+    markdownHint.style.opacity = "0.7";
+    markdownHint.style.marginTop = "-0.5rem";
+    noteFormTextarea.parentNode.insertBefore(
+        markdownHint,
+        noteFormTextarea.nextSibling
+    );
+
+    if (typeof marked !== "undefined") {
+        marked.setOptions({
+            breaks: true,
+            gfm: true,
+            headerIds: false,
+            langPrefix: "language-",
+            highlight: function (code, lang) {
+                if (lang && hljs.getLanguage(lang)) {
+                    return hljs.highlight(code, { language: lang }).value;
+                }
+                return code;
+            },
+        });
+    }
+
+    setTimeout(ensureMasonryLayout, 200);
+
+    window.addEventListener("resize", () => {
+        if (window.noteMasonry) {
+            window.noteMasonry.refresh();
+        }
+    });
+
+    const noteTitleInput = document.getElementById("note-title");
+    const noteTitleCount = document.getElementById("note-title-charcount");
+    noteTitleInput.addEventListener("input", () => {
+        const remaining = 60 - noteTitleInput.value.length;
+        noteTitleCount.textContent =
+            remaining >= 0 ? `${remaining} characters remaining` : "";
+    });
+
+    const editTitleInput = document.getElementById("edit-title");
+    const editTitleCount = document.getElementById("edit-title-charcount");
+    if (editTitleInput) {
+        editTitleInput.addEventListener("input", () => {
+            const remaining = 60 - editTitleInput.value.length;
+            editTitleCount.textContent =
+                remaining >= 0 ? `${remaining} characters remaining` : "";
+        });
+    }
 });
 
 function insertTaskTemplate(textarea) {
@@ -55,7 +107,6 @@ function insertTaskTemplate(textarea) {
     textarea.style.height = "auto";
     textarea.style.height = Math.min(300, textarea.scrollHeight) + "px";
 
-    
     if (textarea.id === "edit-body") {
         updateTaskPreview(textarea.value);
     } else if (textarea.id === "note-body") {
@@ -116,7 +167,6 @@ function createNote() {
     const title = titleInput.value.trim();
     const body = bodyInput.value.trim();
 
-    
     if (!title && !body) {
         showFormError("Please add a title or note content before saving");
         return;
@@ -145,7 +195,6 @@ function createNote() {
     bodyInput.value = "";
     bodyInput.style.height = "auto";
 
-    
     const mainTaskPreview = document.getElementById("main-task-preview");
     if (mainTaskPreview) {
         mainTaskPreview.style.display = "none";
@@ -170,12 +219,10 @@ function createNote() {
     }, 1000);
 }
 
-
 function showFormError(message = "Please enter some content before saving") {
     const form = document.getElementById("note-form");
     form.classList.add("shake");
 
-    
     let errorMsg = document.getElementById("form-error-msg");
     if (!errorMsg) {
         errorMsg = document.createElement("div");
@@ -195,7 +242,6 @@ function showFormError(message = "Please enter some content before saving") {
     errorMsg.style.opacity = "1";
     errorMsg.style.transform = "translateY(0)";
 
-    
     const titleInput = document.getElementById("note-title");
     const bodyInput = document.getElementById("note-body");
 
@@ -213,15 +259,12 @@ function showFormError(message = "Please enter some content before saving") {
     setTimeout(() => {
         form.classList.remove("shake");
 
-        
         errorMsg.style.opacity = "0";
         errorMsg.style.transform = "translateY(-10px)";
 
-        
         titleInput.style.borderBottom = "";
         bodyInput.style.borderBottom = "";
 
-        
         setTimeout(() => {
             if (errorMsg.parentNode) {
                 errorMsg.parentNode.removeChild(errorMsg);
@@ -346,8 +389,6 @@ function createNoteCard(note) {
     const noteCard = document.createElement("div");
     noteCard.className = `note-card note-${note.color}`;
     noteCard.dataset.id = note.id;
-    noteCard.style.opacity = "0";
-    noteCard.style.transform = "translateY(20px)";
 
     noteCard.addEventListener("click", (e) => {
         if (
@@ -360,7 +401,7 @@ function createNoteCard(note) {
 
     const noteContent = document.createElement("div");
     noteContent.className = "note-content";
-
+    noteContent.style.width = "100%";
     if (note.title) {
         const noteTitle = document.createElement("h3");
         noteTitle.textContent = note.title;
@@ -422,34 +463,43 @@ function createNoteCard(note) {
 
     noteContent.appendChild(noteFooter);
 
-    noteCard.appendChild(noteContent);
-
-    
     setTimeout(() => {
         const noteBody = noteCard.querySelector(".note-body");
         if (noteBody && noteBody.scrollHeight > noteBody.clientHeight) {
-            
-            noteBody.classList.add('scrollable');
-            
-            
+            noteBody.classList.add("scrollable");
+
             const footer = noteCard.querySelector(".note-footer");
             if (footer) {
                 footer.style.boxShadow = "0 -4px 6px -6px rgba(0, 0, 0, 0.15)";
             }
-            
-            
-            noteBody.addEventListener('scroll', function() {
-                
-                const nearBottom = this.scrollHeight - this.scrollTop - this.clientHeight < 20;
-                
+
+            noteBody.addEventListener("scroll", function () {
+                const nearBottom =
+                    this.scrollHeight - this.scrollTop - this.clientHeight < 20;
+
                 if (nearBottom) {
                     footer.style.boxShadow = "none";
                 } else {
-                    footer.style.boxShadow = "0 -4px 6px -6px rgba(0, 0, 0, 0.15)";
+                    footer.style.boxShadow =
+                        "0 -4px 6px -6px rgba(0, 0, 0, 0.15)";
                 }
             });
         }
     }, 10);
+
+    noteCard.appendChild(noteContent);
+
+    requestAnimationFrame(() => {
+        noteCard.style.opacity = "0";
+        noteCard.style.transform = "translateY(20px)";
+
+        void noteCard.offsetWidth;
+
+        setTimeout(() => {
+            noteCard.style.opacity = "1";
+            noteCard.style.transform = "translateY(0)";
+        }, 30);
+    });
 
     return noteCard;
 }
@@ -485,63 +535,122 @@ function processNoteContent(note) {
     const container = document.createElement("div");
     container.className = "note-body";
 
-    if (note.tasks && note.tasks.length > 0) {
-        const body = note.body;
-        const taskList = document.createElement("div");
-        taskList.className = "task-list";
+    try {
+        if (note.tasks && note.tasks.length > 0) {
+            const body = note.body;
+            const taskList = document.createElement("div");
+            taskList.className = "task-list";
 
-        note.tasks.forEach((task) => {
-            const taskItem = document.createElement("div");
-            taskItem.className = "task-item";
-            taskItem.dataset.taskId = task.id;
+            note.tasks.forEach((task) => {
+                const taskItem = document.createElement("div");
+                taskItem.className = "task-item";
+                taskItem.dataset.taskId = task.id;
 
-            const label = document.createElement("label");
+                const label = document.createElement("label");
 
-            const checkbox = document.createElement("input");
-            checkbox.type = "checkbox";
-            checkbox.className = "task-checkbox";
-            checkbox.checked = task.completed;
-            checkbox.addEventListener("change", (e) => {
-                e.stopPropagation();
-                toggleTask(note.id, task.id, e.target.checked);
-            });
-
-            const taskText = document.createElement("span");
-            taskText.className =
-                "task-text" + (task.completed ? " completed" : "");
-            taskText.textContent = task.text;
-
-            label.appendChild(checkbox);
-            label.appendChild(taskText);
-            taskItem.appendChild(label);
-
-            taskItem.addEventListener("click", (e) => {
-                if (e.target !== checkbox) {
-                    e.preventDefault();
+                const checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.className = "task-checkbox";
+                checkbox.checked = task.completed;
+                checkbox.addEventListener("change", (e) => {
                     e.stopPropagation();
-                    checkbox.checked = !checkbox.checked;
-                    toggleTask(note.id, task.id, checkbox.checked);
-                }
+                    toggleTask(note.id, task.id, e.target.checked);
+                });
+
+                const taskText = document.createElement("span");
+                taskText.className =
+                    "task-text" + (task.completed ? " completed" : "");
+                taskText.textContent = task.text;
+
+                label.appendChild(checkbox);
+                label.appendChild(taskText);
+                taskItem.appendChild(label);
+
+                taskItem.addEventListener("click", (e) => {
+                    if (e.target !== checkbox) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        checkbox.checked = !checkbox.checked;
+                        toggleTask(note.id, task.id, checkbox.checked);
+                    }
+                });
+
+                taskList.appendChild(taskItem);
             });
 
-            taskList.appendChild(taskItem);
-        });
+            container.appendChild(taskList);
 
-        container.appendChild(taskList);
+            const textContent = note.body
+                .replace(/- \[[ x]\] .+(\r\n|\r|\n|$)/g, "")
+                .trim();
 
-        const textContent = note.body
-            .replace(/- \[[ x]\] .+(\r\n|\r|\n|$)/g, "")
-            .trim();
-        if (textContent) {
-            const textPara = document.createElement("p");
-            textPara.className = "note-text";
-            textPara.textContent = textContent;
-            container.appendChild(textPara);
+            if (textContent) {
+                const textPara = document.createElement("div");
+                textPara.className = "note-text markdown-body";
+
+                try {
+                    if (typeof marked !== "undefined") {
+                        textPara.innerHTML = marked.parse(textContent);
+                    } else {
+                        throw new Error("Markdown parser not available");
+                    }
+                } catch (err) {
+                    console.warn("Error parsing markdown:", err);
+                    textPara.textContent = textContent;
+                }
+
+                if (typeof hljs !== "undefined") {
+                    try {
+                        textPara
+                            .querySelectorAll("pre code")
+                            .forEach((block) => {
+                                hljs.highlightElement(block);
+                            });
+                    } catch (err) {
+                        console.warn(
+                            "Error applying syntax highlighting:",
+                            err
+                        );
+                    }
+                }
+
+                container.appendChild(textPara);
+            }
+        } else {
+            const markdownDiv = document.createElement("div");
+            markdownDiv.className = "note-text markdown-body";
+
+            try {
+                if (typeof marked !== "undefined") {
+                    markdownDiv.innerHTML = marked.parse(note.body);
+                } else {
+                    throw new Error("Markdown parser not available");
+                }
+            } catch (err) {
+                console.warn("Error parsing markdown:", err);
+                markdownDiv.textContent = note.body;
+            }
+
+            if (typeof hljs !== "undefined") {
+                try {
+                    markdownDiv
+                        .querySelectorAll("pre code")
+                        .forEach((block) => {
+                            hljs.highlightElement(block);
+                        });
+                } catch (err) {
+                    console.warn("Error applying syntax highlighting:", err);
+                }
+            }
+
+            container.appendChild(markdownDiv);
         }
-    } else {
-        const para = document.createElement("p");
-        para.textContent = note.body;
-        container.appendChild(para);
+    } catch (err) {
+        console.error("Error processing note content:", err);
+        const textDiv = document.createElement("div");
+        textDiv.className = "note-text";
+        textDiv.textContent = note.body;
+        container.appendChild(textDiv);
     }
 
     return container;
@@ -557,36 +666,29 @@ function toggleTask(noteId, taskId, completed) {
         );
 
         if (taskIndex !== -1) {
-            
             const task = notes[noteIndex].tasks[taskIndex];
             task.completed = completed;
 
-            
             const taskText = task.text;
             const escapedTaskText = taskText.replace(
                 /[.*+?^${}()|[\]\\]/g,
                 "\\$&"
-            ); 
+            );
 
-            
             const taskRegex = new RegExp(
                 `- \\[[ x]\\] ${escapedTaskText}(\r\n|\r|\n|$)`,
                 "g"
             );
 
-            
             notes[noteIndex].body = notes[noteIndex].body.replace(
                 taskRegex,
                 `- [${completed ? "x" : " "}] ${taskText}$1`
             );
 
-            
             notes[noteIndex].lastEdited = new Date();
 
-            
             localStorage.setItem("notes", JSON.stringify(notes));
 
-            
             const taskItem = document.querySelector(
                 `.note-card[data-id="${noteId}"] .task-item[data-task-id="${taskId}"]`
             );
@@ -639,109 +741,62 @@ function initModals() {
         btn.addEventListener("click", closeAllModals);
     });
 
-    document
-        .getElementById("modal-backdrop")
-        .addEventListener("click", closeAllModals);
+    const modalBackdrop = document.getElementById("modal-backdrop");
+    if (modalBackdrop) {
+        modalBackdrop.addEventListener("click", closeAllModals);
+    }
 
     setupColorPicker(".edit-color-options");
 
-    document
-        .getElementById("save-edit")
-        .addEventListener("click", saveNoteEdit);
+    const saveEditBtn = document.getElementById("save-edit");
+    if (saveEditBtn) {
+        saveEditBtn.addEventListener("click", saveNoteEdit);
+    }
 
-    document
-        .querySelector(".cancel-delete")
-        .addEventListener("click", closeAllModals);
-    document
-        .querySelector(".confirm-delete")
-        .addEventListener("click", confirmDeleteNote);
+    const cancelDeleteBtn = document.querySelector(".cancel-delete");
+    if (cancelDeleteBtn) {
+        cancelDeleteBtn.addEventListener("click", closeAllModals);
+    }
+
+    const confirmDeleteBtn = document.querySelector(".confirm-delete");
+    if (confirmDeleteBtn) {
+        confirmDeleteBtn.addEventListener("click", confirmDeleteNote);
+    }
 
     const editTextarea = document.getElementById("edit-body");
-    editTextarea.addEventListener("input", () => {
-        editTextarea.style.height = "auto";
-        editTextarea.style.height =
-            Math.min(300, editTextarea.scrollHeight) + "px";
+    if (editTextarea) {
+        editTextarea.addEventListener("input", () => {
+            editTextarea.style.height = "auto";
+            editTextarea.style.height =
+                Math.min(300, editTextarea.scrollHeight) + "px";
 
-        
-        updateTaskPreview(editTextarea.value);
-    });
+            updateTaskPreview(editTextarea.value);
+        });
+    }
 
     document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
             closeAllModals();
         } else if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
             const editModal = document.getElementById("edit-modal");
-            if (editModal.classList.contains("active")) {
+            if (editModal && editModal.classList.contains("active")) {
                 e.preventDefault();
                 saveNoteEdit();
             }
         }
     });
 
-    const tooltip = document.getElementById("task-info-tooltip");
-    const editBody = document.getElementById("edit-body");
-
-    tooltip.addEventListener("click", () => {
-        const position = editBody.selectionStart;
-        const content = editBody.value;
-        const before = content.substring(0, position);
-        const after = content.substring(position);
-
-        const taskTemplate = "- [ ] Task description\n";
-        editBody.value = before + taskTemplate + after;
-
-        const newPosition = position + taskTemplate.length;
-        editBody.focus();
-        editBody.setSelectionRange(newPosition - 1, newPosition - 1);
-
-        editBody.style.height = "auto";
-        editBody.style.height = Math.min(300, editBody.scrollHeight) + "px";
-
-        updateTaskPreview(editBody.value);
-    });
-
-    setTimeout(() => {
-        if (tooltip) {
-            tooltip.style.opacity = "0.4";
-        }
-    }, 5000);
-
-    editBody.addEventListener("input", () => {
-        updateTaskPreview(editBody.value);
-    });
+    if (editTextarea) {
+        editTextarea.addEventListener("input", () => {
+            updateTaskPreview(editTextarea.value);
+        });
+    }
 
     const addCheckboxBtn = document.getElementById("add-checkbox-btn");
-
-    addCheckboxBtn.addEventListener("click", () => {
-        const position = editBody.selectionStart;
-        const content = editBody.value;
-        const before = content.substring(0, position);
-        const after = content.substring(position);
-
-        let prefix = "";
-        if (position > 0 && before.charAt(before.length - 1) !== "\n") {
-            prefix = "\n";
-        }
-
-        const taskTemplate = `${prefix}- [ ] `;
-        editBody.value = before + taskTemplate + after;
-
-        const newPosition = position + taskTemplate.length;
-        editBody.focus();
-        editBody.setSelectionRange(newPosition, newPosition);
-
-        editBody.style.height = "auto";
-        editBody.style.height = Math.min(300, editBody.scrollHeight) + "px";
-
-        updateTaskPreview(editBody.value);
-    });
-
-    if (addCheckboxBtn) {
+    if (addCheckboxBtn && editTextarea) {
         addCheckboxBtn.addEventListener("click", () => {
-            insertTaskTemplate(editBody);
+            insertTaskTemplate(editTextarea);
         });
-    } else {
-        console.error("Add checkbox button not found in the modal");
     }
 }
 
@@ -838,32 +893,29 @@ function updateTaskPreview(content) {
         taskPreview.appendChild(taskItem);
     });
 
-    
     setTimeout(() => {
         if (taskPreview.scrollHeight > taskPreview.clientHeight) {
-            
-            taskPreview.classList.add('scrollable');
-            
-            
+            taskPreview.classList.add("scrollable");
+
             taskPreview.style.overflow = "overlay";
-            
-            
-            taskPreview.addEventListener('scroll', function() {
-                
-                if (this.scrollHeight - this.scrollTop - this.clientHeight < 20) {
-                    this.classList.remove('scrollable');
+
+            taskPreview.addEventListener("scroll", function () {
+                if (
+                    this.scrollHeight - this.scrollTop - this.clientHeight <
+                    20
+                ) {
+                    this.classList.remove("scrollable");
                 } else {
-                    this.classList.add('scrollable');
+                    this.classList.add("scrollable");
                 }
             });
         } else {
-            taskPreview.classList.remove('scrollable');
+            taskPreview.classList.remove("scrollable");
         }
     }, 0);
 }
 
 function updateMainFormTaskPreview(content) {
-    
     let taskPreview = document.getElementById("main-task-preview");
     if (!taskPreview) {
         taskPreview = document.createElement("div");
@@ -962,23 +1014,22 @@ function updateMainFormTaskPreview(content) {
         taskPreview.appendChild(taskItem);
     });
 
-    
     setTimeout(() => {
         if (taskPreview.scrollHeight > taskPreview.clientHeight) {
-            
-            taskPreview.classList.add('scrollable');
-            
-            
-            taskPreview.addEventListener('scroll', function() {
-                
-                if (this.scrollHeight - this.scrollTop - this.clientHeight < 20) {
-                    this.classList.remove('scrollable');
+            taskPreview.classList.add("scrollable");
+
+            taskPreview.addEventListener("scroll", function () {
+                if (
+                    this.scrollHeight - this.scrollTop - this.clientHeight <
+                    20
+                ) {
+                    this.classList.remove("scrollable");
                 } else {
-                    this.classList.add('scrollable');
+                    this.classList.add("scrollable");
                 }
             });
         } else {
-            taskPreview.classList.remove('scrollable');
+            taskPreview.classList.remove("scrollable");
         }
     }, 0);
 }
@@ -1039,6 +1090,24 @@ function openEditModal(noteId) {
             }, 300);
         }, 30);
     }, 10);
+
+    setTimeout(() => {
+        let markdownHint = document.querySelector(".markdown-hint");
+        if (!markdownHint) {
+            markdownHint = document.createElement("div");
+            markdownHint.className = "markdown-hint";
+            markdownHint.innerHTML = "<i>Markdown formatting supported</i>";
+            markdownHint.style.fontSize = "0.8rem";
+            markdownHint.style.opacity = "0.7";
+            markdownHint.style.marginTop = "-0.5rem";
+            markdownHint.style.marginBottom = "0.5rem";
+            const modalBody = document.querySelector("#edit-modal .modal-body");
+            modalBody.insertBefore(
+                markdownHint,
+                document.getElementById("edit-body")
+            );
+        }
+    }, 300);
 }
 
 function closeAllModals() {
@@ -1068,14 +1137,11 @@ function saveNoteEdit() {
     const title = document.getElementById("edit-title").value.trim();
     const body = document.getElementById("edit-body").value.trim();
 
-    
     if (!title && !body) {
-        
         showModalError("Please add a title or note content before saving");
         return;
     }
 
-    
     const selectedColorOption = document.querySelector(
         ".edit-color-options .color-option.selected"
     );
@@ -1116,7 +1182,6 @@ function saveNoteEdit() {
     }
 }
 
-
 function showModalError(message) {
     let errorToast = document.getElementById("modal-error-toast");
 
@@ -1143,7 +1208,6 @@ function showModalError(message) {
     errorToast.style.opacity = "1";
     errorToast.style.transform = "translateX(-50%) translateY(0)";
 
-    
     const titleInput = document.getElementById("edit-title");
     const bodyInput = document.getElementById("edit-body");
 
@@ -1152,7 +1216,6 @@ function showModalError(message) {
         bodyInput.style.borderColor = "#EA4335";
     }
 
-    
     setTimeout(() => {
         errorToast.style.opacity = "0";
         errorToast.style.transform = "translateX(-50%) translateY(20px)";
@@ -1192,8 +1255,9 @@ function updateNoteInDOM(note) {
     const noteCard = document.querySelector(`.note-card[data-id="${note.id}"]`);
     if (!noteCard) return;
 
-    const titleElement = noteCard.querySelector("h3");
     const noteContent = noteCard.querySelector(".note-content");
+    if (!noteContent) return;
+    const titleElement = noteCard.querySelector("h3");
 
     if (note.title) {
         if (titleElement) {
@@ -1201,74 +1265,33 @@ function updateNoteInDOM(note) {
         } else {
             const newTitle = document.createElement("h3");
             newTitle.textContent = note.title;
-            noteContent.prepend(newTitle);
+            if (noteContent) {
+                noteContent.prepend(newTitle);
+            }
         }
-    } else if (titleElement) {
-        titleElement.remove();
+    } else if (titleElement && titleElement.parentNode) {
+        titleElement.parentNode.removeChild(titleElement);
     }
 
     const oldBodyContent = noteCard.querySelector(".note-body");
-    if (oldBodyContent) {
+    if (oldBodyContent && noteContent) {
         const newBodyContent = processNoteContent(note);
         noteContent.replaceChild(newBodyContent, oldBodyContent);
 
-        
-        setTimeout(() => {
-            const noteBody = noteCard.querySelector(".note-body");
-            const footer = noteCard.querySelector(".note-footer");
-            
-            if (noteBody && footer) {
-                if (noteBody.scrollHeight > noteBody.clientHeight) {
-                    
-                    noteBody.classList.add('scrollable');
-                    footer.style.boxShadow = "0 -4px 6px -4px rgba(0, 0, 0, 0.15)";
-                    
-                    
-                    noteBody.addEventListener('scroll', function() {
-                        
-                        const nearBottom = this.scrollHeight - this.scrollTop - this.clientHeight < 20;
-                        
-                        if (nearBottom) {
-                            footer.style.boxShadow = "none";
-                        } else {
-                            footer.style.boxShadow = "0 -4px 6px -6px rgba(0, 0, 0, 0.15)";
-                        }
-                    });
-                } else {
-                    noteBody.classList.remove('scrollable');
-                    footer.style.boxShadow = "";
-                }
-            }
-        }, 10);
-    }
-
-    const timestampDiv = noteCard.querySelector(".note-timestamp");
-    if (timestampDiv) {
-        const createdSpan = timestampDiv.querySelector("span:first-child");
-        if (createdSpan) {
-            createdSpan.textContent = `Created: ${formatDate(
-                new Date(note.created)
-            )}`;
-        }
-
-        if (note.lastEdited && note.lastEdited !== note.created) {
-            let editedSpan = timestampDiv.querySelector("span:nth-child(2)");
-
-            if (!editedSpan) {
-                editedSpan = document.createElement("span");
-                timestampDiv.appendChild(editedSpan);
-            }
-
-            editedSpan.textContent = `Edited: ${formatDate(
-                new Date(note.lastEdited)
-            )}`;
+        if (window.noteMasonry) {
+            setTimeout(() => {
+                window.noteMasonry.refresh();
+            }, 50);
         }
     }
 
     noteCard.className = `note-card note-${note.color}`;
 
+    noteCard.style.opacity = "1";
+    noteCard.style.transform = "translateY(0)";
+    noteCard.style.height = "auto";
     if (window.noteMasonry) {
-        window.noteMasonry.refresh();
+        setTimeout(() => window.noteMasonry.refresh(), 100);
     }
 }
 
@@ -1289,4 +1312,24 @@ function openDeleteModal(noteId) {
             modal.classList.add("active");
         }, 30);
     }, 10);
+}
+
+function ensureMasonryLayout() {
+    if (!window.noteMasonry) {
+        console.log("Initializing masonry...");
+        const computedStyle = getComputedStyle(document.documentElement);
+        const spacingMd =
+            parseFloat(
+                computedStyle.getPropertyValue("--spacing-md") || "1rem"
+            ) * 16;
+
+        window.noteMasonry = new NoteMasonry("#notes-list", {
+            minColumnWidth: window.innerWidth < 640 ? 160 : 220,
+            maxColumns: 5,
+            gutter: spacingMd,
+            animated: true,
+        });
+    } else {
+        window.noteMasonry.refresh();
+    }
 }

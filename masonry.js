@@ -38,7 +38,7 @@ class NoteMasonry {
     init() {
         if (!this.container) return;
 
-        console.log("Initializing masonry layout...");
+        // console.log("Initializing masonry layout...");
 
         // Set container style
         this.container.style.position = "relative";
@@ -103,9 +103,9 @@ class NoteMasonry {
         const availableWidth = containerWidth - (columnCount - 1) * gutter;
         const columnWidth = Math.floor(availableWidth / columnCount);
 
-        console.log(
-            `Layout: ${columnCount} columns of ${columnWidth}px width with ${gutter}px gutter`
-        );
+        // console.log(
+        //     `Layout: ${columnCount} columns of ${columnWidth}px width with ${gutter}px gutter`
+        // );
 
         // Reset columns heights
         this.columns = Array(columnCount).fill(0);
@@ -150,7 +150,7 @@ class NoteMasonry {
         const finalHeight = this.items.length > 0 ? maxHeight - gutter : 0;
         this.container.style.height = `${finalHeight}px`;
 
-        console.log("Layout complete. Container height:", finalHeight);
+        // console.log("Layout complete. Container height:", finalHeight);
     }
 
     getShortestColumnIndex() {
@@ -171,9 +171,9 @@ class NoteMasonry {
         // Get all items
         this.items = Array.from(this.container.children);
 
-        console.log(
-            `Refreshing masonry layout with ${this.items.length} items`
-        );
+        // console.log(
+        //     `Refreshing masonry layout with ${this.items.length} items`
+        // );
 
         // Reset any transform/positioning
         this.items.forEach((item) => {
@@ -209,7 +209,7 @@ document.addEventListener("DOMContentLoaded", () => {
         16;
 
     setTimeout(() => {
-        console.log("Creating masonry layout");
+        // console.log("Creating masonry layout");
         window.noteMasonry = new NoteMasonry("#notes-list", {
             minColumnWidth: window.innerWidth < 640 ? 160 : 220,
             maxColumns: 5,
