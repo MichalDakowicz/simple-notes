@@ -47,8 +47,8 @@ document.addEventListener("DOMContentLoaded", () => {
             headerIds: false,
             langPrefix: "language-",
             highlight: function (code, lang) {
-                if (lang && hljs.getLanguage(lang)) {
-                    return hljs.highlight(code, { language: lang }).value;
+                if (lang && Prism.languages[lang]) {
+                    return Prism.highlight(code, Prism.languages[lang], lang);
                 }
                 return code;
             },
@@ -78,6 +78,277 @@ document.addEventListener("DOMContentLoaded", () => {
             const remaining = 60 - editTitleInput.value.length;
             editTitleCount.textContent =
                 remaining >= 0 ? `${remaining} characters remaining` : "";
+        });
+    }
+
+    const noteBody = document.getElementById("note-body");
+    noteBody.addEventListener("keydown", function (e) {
+        if (e.key === "Tab") {
+            e.preventDefault();
+            const start = this.selectionStart;
+            const end = this.selectionEnd;
+            this.value =
+                this.value.substring(0, start) +
+                "\t" +
+                this.value.substring(end);
+            this.selectionStart = this.selectionEnd = start + 1;
+        }
+    });
+
+    const editBody = document.getElementById("edit-body");
+    if (editBody) {
+        editBody.addEventListener("keydown", function (e) {
+            if (e.key === "Tab") {
+                e.preventDefault();
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                this.value =
+                    this.value.substring(0, start) +
+                    "\t" +
+                    this.value.substring(end);
+                this.selectionStart = this.selectionEnd = start + 1;
+            }
+        });
+    }
+
+    document.fonts.ready.then(() => {
+        setTimeout(() => {
+            if (window.noteMasonry) {
+                window.noteMasonry.refresh();
+            } else {
+                if (typeof NoteMasonry === "function") {
+                    const computedStyle = getComputedStyle(
+                        document.documentElement
+                    );
+                    const spacingMd =
+                        parseFloat(
+                            computedStyle.getPropertyValue("--spacing-md") ||
+                                "1rem"
+                        ) * 16;
+                    window.noteMasonry = new NoteMasonry("#notes-list", {
+                        minColumnWidth: window.innerWidth < 640 ? 160 : 220,
+                        maxColumns: 4,
+                        gutter: spacingMd,
+                        animated: true,
+                    });
+                }
+            }
+        }, 300);
+    });
+    window.addEventListener("load", function () {
+        setTimeout(() => {
+            if (window.noteMasonry) {
+                window.noteMasonry.refresh();
+            } else if (typeof NoteMasonry === "function") {
+                const computedStyle = getComputedStyle(
+                    document.documentElement
+                );
+                const spacingMd =
+                    parseFloat(
+                        computedStyle.getPropertyValue("--spacing-md") || "1rem"
+                    ) * 16;
+                window.noteMasonry = new NoteMasonry("#notes-list", {
+                    minColumnWidth: window.innerWidth < 640 ? 160 : 220,
+                    maxColumns: 4,
+                    gutter: spacingMd,
+                    animated: true,
+                });
+            }
+        }, 200);
+    });
+
+    function insertMarkdownFormat(textarea, marker) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const value = textarea.value;
+        const selectedText = value.substring(start, end);
+        const insertText = marker + selectedText + marker;
+        textarea.value =
+            value.substring(0, start) + insertText + value.substring(end);
+        if (selectedText.length === 0) {
+            textarea.selectionStart = textarea.selectionEnd =
+                start + marker.length;
+        } else {
+            textarea.selectionStart = start;
+            textarea.selectionEnd = start + insertText.length;
+        }
+        textarea.focus();
+    }
+
+    function insertQuoteFormat(textarea) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const value = textarea.value;
+        const selectedText = value.substring(start, end);
+        const lines = selectedText.split(/\r?\n/).map((line) => "> " + line);
+        const insertText = lines.join("\n");
+        textarea.value =
+            value.substring(0, start) + insertText + value.substring(end);
+        textarea.selectionStart = textarea.selectionEnd =
+            start + insertText.length;
+        textarea.focus();
+    }
+
+    function insertLinkFormat(textarea) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const value = textarea.value;
+        const selectedText = value.substring(start, end) || "link text";
+        const insertText = `[${selectedText}](url)`;
+        textarea.value =
+            value.substring(0, start) + insertText + value.substring(end);
+        const linkStart = start + insertText.indexOf("url");
+        textarea.selectionStart = linkStart;
+        textarea.selectionEnd = linkStart + 3;
+        textarea.focus();
+    }
+
+    function insertHeadingFormat(textarea) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const value = textarea.value;
+        const selectedText = value.substring(start, end);
+        const lines = selectedText.split(/\r?\n/).map((line) => {
+            return line.trim() ? "# " + line : line;
+        });
+        const insertText = lines.join("\n");
+        textarea.value =
+            value.substring(0, start) + insertText + value.substring(end);
+        textarea.selectionStart = textarea.selectionEnd =
+            start + insertText.length;
+        textarea.focus();
+    }
+
+    function insertMultilineCodeBlockFormat(textarea) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const value = textarea.value;
+        const selectedText = value.substring(start, end);
+        const insertText = "```\n" + selectedText + "\n```";
+        textarea.value =
+            value.substring(0, start) + insertText + value.substring(end);
+        if (!selectedText) {
+            textarea.selectionStart = textarea.selectionEnd = start + 4;
+        } else {
+            textarea.selectionStart = textarea.selectionEnd =
+                start + insertText.length;
+        }
+        textarea.focus();
+    }
+
+    function insertListFormat(textarea) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const value = textarea.value;
+        const selectedText = value.substring(start, end);
+        const lines = selectedText
+            .split(/\r?\n/)
+            .map((line) => "- " + line.trim());
+        const insertText = lines.join("\n");
+        textarea.value =
+            value.substring(0, start) + insertText + value.substring(end);
+        textarea.selectionStart = textarea.selectionEnd =
+            start + insertText.length;
+        textarea.focus();
+    }
+
+    const noteTextarea = document.getElementById("note-body");
+    const boldBtn = document.getElementById("bold-btn");
+    const italicBtn = document.getElementById("italic-btn");
+    const codeBtn = document.getElementById("code-btn");
+    const quoteBtn = document.getElementById("quote-btn");
+    const linkBtn = document.getElementById("link-btn");
+    const headingBtn = document.getElementById("heading-btn");
+    const multicodeBtn = document.getElementById("multicode-btn");
+    const listBtn = document.getElementById("list-btn");
+    if (boldBtn && noteTextarea) {
+        boldBtn.addEventListener("click", () => {
+            insertMarkdownFormat(noteTextarea, "**");
+        });
+    }
+    if (italicBtn && noteTextarea) {
+        italicBtn.addEventListener("click", () => {
+            insertMarkdownFormat(noteTextarea, "_");
+        });
+    }
+    if (codeBtn && noteTextarea) {
+        codeBtn.addEventListener("click", () => {
+            insertMarkdownFormat(noteTextarea, "`");
+        });
+    }
+    if (quoteBtn && noteTextarea) {
+        quoteBtn.addEventListener("click", () => {
+            insertQuoteFormat(noteTextarea);
+        });
+    }
+    if (linkBtn && noteTextarea) {
+        linkBtn.addEventListener("click", () => {
+            insertLinkFormat(noteTextarea);
+        });
+    }
+    if (headingBtn && noteTextarea) {
+        headingBtn.addEventListener("click", () => {
+            insertHeadingFormat(noteTextarea);
+        });
+    }
+    if (multicodeBtn && noteTextarea) {
+        multicodeBtn.addEventListener("click", () => {
+            insertMultilineCodeBlockFormat(noteTextarea);
+        });
+    }
+    if (listBtn && noteTextarea) {
+        listBtn.addEventListener("click", () => {
+            insertListFormat(noteTextarea);
+        });
+    }
+
+    const editTextarea = document.getElementById("edit-body");
+    const editBoldBtn = document.getElementById("edit-bold-btn");
+    const editItalicBtn = document.getElementById("edit-italic-btn");
+    const editCodeBtn = document.getElementById("edit-code-btn");
+    const editQuoteBtn = document.getElementById("edit-quote-btn");
+    const editLinkBtn = document.getElementById("edit-link-btn");
+    const editHeadingBtn = document.getElementById("edit-heading-btn");
+    const editMulticodeBtn = document.getElementById("edit-multicode-btn");
+    const editListBtn = document.getElementById("edit-list-btn");
+    if (editBoldBtn && editTextarea) {
+        editBoldBtn.addEventListener("click", () => {
+            insertMarkdownFormat(editTextarea, "**");
+        });
+    }
+    if (editItalicBtn && editTextarea) {
+        editItalicBtn.addEventListener("click", () => {
+            insertMarkdownFormat(editTextarea, "_");
+        });
+    }
+    if (editCodeBtn && editTextarea) {
+        editCodeBtn.addEventListener("click", () => {
+            insertMarkdownFormat(editTextarea, "`");
+        });
+    }
+    if (editQuoteBtn && editTextarea) {
+        editQuoteBtn.addEventListener("click", () => {
+            insertQuoteFormat(editTextarea);
+        });
+    }
+    if (editLinkBtn && editTextarea) {
+        editLinkBtn.addEventListener("click", () => {
+            insertLinkFormat(editTextarea);
+        });
+    }
+    if (editHeadingBtn && editTextarea) {
+        editHeadingBtn.addEventListener("click", () => {
+            insertHeadingFormat(editTextarea);
+        });
+    }
+    if (editMulticodeBtn && editTextarea) {
+        editMulticodeBtn.addEventListener("click", () => {
+            insertMultilineCodeBlockFormat(editTextarea);
+        });
+    }
+    if (editListBtn && editTextarea) {
+        editListBtn.addEventListener("click", () => {
+            insertListFormat(editTextarea);
         });
     }
 });
@@ -1325,7 +1596,7 @@ function ensureMasonryLayout() {
 
         window.noteMasonry = new NoteMasonry("#notes-list", {
             minColumnWidth: window.innerWidth < 640 ? 160 : 220,
-            maxColumns: 5,
+            maxColumns: 4,
             gutter: spacingMd,
             animated: true,
         });

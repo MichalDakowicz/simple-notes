@@ -8,7 +8,7 @@ class NoteMasonry {
         this.options = Object.assign(
             {
                 minColumnWidth: 220,
-                maxColumns: 5,
+                maxColumns: 4, // changed from 5 to 4
                 gutter: 16, // This controls the gap between cards
                 animated: true,
             },
@@ -212,7 +212,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // console.log("Creating masonry layout");
         window.noteMasonry = new NoteMasonry("#notes-list", {
             minColumnWidth: window.innerWidth < 640 ? 160 : 220,
-            maxColumns: 5,
+            maxColumns: 4, // changed from 5 to 4
             gutter: spacingMd, // Use standard spacing from CSS variables
             animated: true,
         });

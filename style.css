@@ -161,29 +161,12 @@ main {
     transform: scale(1.2);
 }
 
-#note-form button {
-    padding: var(--spacing-sm) var(--spacing-lg);
-    background-color: var(--primary);
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-weight: 500;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: background-color var(--transition), transform var(--transition);
-}
-
-#note-form button:hover {
-    background-color: var(--primary-hover);
-    transform: translateY(-1px);
-}
-
 #note-form button:active {
     transform: translateY(0);
 }
 
 #add-note {
-    color: var(--text-primary) !important;
+    color: #fff;
     font-weight: 500;
 }
 
@@ -327,11 +310,6 @@ main {
 
 #note-form button:active {
     transform: translateY(0);
-}
-
-#add-note {
-    color: var(--text-primary) !important;
-    font-weight: 500;
 }
 
 #notes-list {
@@ -911,6 +889,9 @@ main {
     #note-form {
         padding: var(--spacing-md);
     }
+    #note-form .editor-toolbar {
+        justify-content: space-between !important;
+    }
 }
 
 @media (max-width: 480px) {
@@ -1220,8 +1201,9 @@ main {
 
 .editor-toolbar {
     display: flex;
-    gap: var(--spacing-md);
+    justify-content: space-between;
     margin-bottom: var(--spacing-md);
+    width: 100%;
 }
 
 .toolbar-btn {
@@ -1290,8 +1272,12 @@ main {
 
 #note-form .editor-toolbar {
     display: flex;
-    gap: var(--spacing-sm);
+    justify-content: left;
     margin-bottom: var(--spacing-xs);
+}
+
+#note-form .editor-toolbar button {
+    padding: var(--spacing-xs);
 }
 
 #note-form .toolbar-btn {
@@ -1796,4 +1782,9 @@ input[type="text"]:invalid {
     .char-count {
         color: #ff8a80;
     }
+}
+
+code[class*="language-"],
+pre[class*="language-"] {
+    text-shadow: none;
 }
