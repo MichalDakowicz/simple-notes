@@ -1134,7 +1134,8 @@ main {
     position: absolute;
     width: 4px;
     height: 11px;
-    left: 5px;
+    left: 4px;
+    bottom: 2px;
     border: solid white;
     border-width: 0 2px 2px 0;
     transform: rotate(45deg);
@@ -1150,7 +1151,7 @@ main {
     position: sticky;
     bottom: 0;
     z-index: 2;
-    padding-top: var(--spacing-xs);
+    padding-top: var (--spacing-xs);
 
     box-shadow: 0 -4px 6px -6px rgba(0, 0, 0, 0.1);
 }
@@ -1787,4 +1788,198 @@ input[type="text"]:invalid {
 code[class*="language-"],
 pre[class*="language-"] {
     text-shadow: none;
+}
+
+.pin-note {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.pin-note:hover {
+    background-color: rgba(0, 0, 0, 0.08);
+    transform: scale(1.1);
+    color: var(--primary);
+}
+
+.pin-note.pinned {
+    color: var(--primary);
+}
+
+.pin-note.pinned:hover {
+    transform: scale(1.15);
+}
+
+.pin-note svg {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2px;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+        color 0.3s ease, fill 0.3s ease;
+}
+
+.pin-note:not(.pinned):hover svg {
+    transform: rotate(25deg);
+}
+
+.pin-note.pinned svg {
+    transform: rotate(45deg);
+    fill: var(--primary);
+}
+
+@keyframes pin-insert {
+    0% {
+        transform: translateY(-8px) rotate(20deg);
+    }
+    60% {
+        transform: translateY(2px) rotate(45deg);
+    }
+    70% {
+        transform: translateY(-1px) rotate(45deg);
+    }
+    100% {
+        transform: translateY(0) rotate(45deg);
+    }
+}
+
+.pin-note.just-pinned svg {
+    animation: pin-insert 0.4s forwards;
+}
+
+@keyframes pin-remove {
+    0% {
+        transform: translateY(0) rotate(45deg);
+    }
+    40% {
+        transform: translateY(-2px) rotate(25deg);
+    }
+    100% {
+        transform: translateY(-8px) rotate(0);
+        opacity: 0;
+    }
+}
+
+.pin-note.just-unpinned svg {
+    animation: pin-remove 0.3s forwards;
+}
+
+.note-card.pinned {
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+    border-width: 1px;
+}
+
+.note-card.pinned::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background-color: var(--primary);
+    border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.pin-note.pinned svg {
+    filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.2));
+}
+
+@media (prefers-color-scheme: dark) {
+    .pin-note:hover {
+        background-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .note-card.pinned {
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .pin-note.pinned svg {
+        filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.4));
+    }
+}
+
+.toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(30px);
+    padding: 12px 20px;
+    border-radius: var(--radius);
+    background-color: #323232;
+    color: white;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    z-index: 9999;
+    opacity: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    max-width: 80%;
+    text-align: center;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.toast-error {
+    background-color: #e53935;
+}
+
+.toast-success {
+    background-color: #34a853;
+}
+
+.toast-info {
+    background-color: var(--primary);
+}
+
+.note-body img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius);
+    display: block;
+    margin: 8px 0;
+}
+
+.markdown-body img {
+    cursor: zoom-in;
+    transition: filter 0.2s ease, transform 0.2s ease;
+}
+
+.markdown-body img:hover {
+    filter: brightness(1.05);
+    transform: scale(1.01);
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 0.6;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0.6;
+    }
+}
+
+.image-loading {
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius);
+    width: 100%;
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-style: italic;
+    animation: pulse 1.5s infinite;
 }

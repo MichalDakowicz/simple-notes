@@ -103,15 +103,20 @@ class NoteMasonry {
         const availableWidth = containerWidth - (columnCount - 1) * gutter;
         const columnWidth = Math.floor(availableWidth / columnCount);
 
-        // console.log(
-        //     `Layout: ${columnCount} columns of ${columnWidth}px width with ${gutter}px gutter`
-        // );
-
         // Reset columns heights
         this.columns = Array(columnCount).fill(0);
 
+        // Sort items based on pinned status
+        const sortedItems = [...this.items].sort((a, b) => {
+            const aPinned = a.dataset.pinned === "true";
+            const bPinned = b.dataset.pinned === "true";
+            if (aPinned && !bPinned) return -1;
+            if (!aPinned && bPinned) return 1;
+            return 0;
+        });
+
         // Position each item with consistent spacing
-        this.items.forEach((item, index) => {
+        sortedItems.forEach((item, index) => {
             // Reset any previous positioning
             item.style.width = `${columnWidth}px`;
 
@@ -149,8 +154,6 @@ class NoteMasonry {
         // Subtract the final gutter if there are items
         const finalHeight = this.items.length > 0 ? maxHeight - gutter : 0;
         this.container.style.height = `${finalHeight}px`;
-
-        // console.log("Layout complete. Container height:", finalHeight);
     }
 
     getShortestColumnIndex() {

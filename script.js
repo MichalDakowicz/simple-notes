@@ -351,6 +351,243 @@ document.addEventListener("DOMContentLoaded", () => {
             insertListFormat(editTextarea);
         });
     }
+
+    const imageBtn = document.getElementById("image-btn");
+    if (imageBtn && noteTextarea) {
+        imageBtn.addEventListener("click", () => {
+            handleImageUpload(noteTextarea);
+        });
+    }
+
+    const editImageBtn = document.getElementById("edit-image-btn");
+    if (editImageBtn && editTextarea) {
+        editImageBtn.addEventListener("click", () => {
+            handleImageUpload(editTextarea);
+        });
+    }
+
+    document.fonts.ready.then(() => {
+        setTimeout(() => {
+            if (window.noteMasonry) {
+                window.noteMasonry.refresh();
+            } else {
+                if (typeof NoteMasonry === "function") {
+                    const computedStyle = getComputedStyle(
+                        document.documentElement
+                    );
+                    const spacingMd =
+                        parseFloat(
+                            computedStyle.getPropertyValue("--spacing-md") ||
+                                "1rem"
+                        ) * 16;
+                    window.noteMasonry = new NoteMasonry("#notes-list", {
+                        minColumnWidth: window.innerWidth < 640 ? 160 : 220,
+                        maxColumns: 4,
+                        gutter: spacingMd,
+                        animated: true,
+                    });
+                }
+            }
+        }, 300);
+    });
+    window.addEventListener("load", function () {
+        setTimeout(() => {
+            if (window.noteMasonry) {
+                window.noteMasonry.refresh();
+            } else if (typeof NoteMasonry === "function") {
+                const computedStyle = getComputedStyle(
+                    document.documentElement
+                );
+                const spacingMd =
+                    parseFloat(
+                        computedStyle.getPropertyValue("--spacing-md") || "1rem"
+                    ) * 16;
+                window.noteMasonry = new NoteMasonry("#notes-list", {
+                    minColumnWidth: window.innerWidth < 640 ? 160 : 220,
+                    maxColumns: 4,
+                    gutter: spacingMd,
+                    animated: true,
+                });
+            }
+        }, 200);
+    });
+
+    function insertMarkdownFormat(textarea, marker) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const value = textarea.value;
+        const selectedText = value.substring(start, end);
+        const insertText = marker + selectedText + marker;
+        textarea.value =
+            value.substring(0, start) + insertText + value.substring(end);
+        if (selectedText.length === 0) {
+            textarea.selectionStart = textarea.selectionEnd =
+                start + marker.length;
+        } else {
+            textarea.selectionStart = start;
+            textarea.selectionEnd = start + insertText.length;
+        }
+        textarea.focus();
+    }
+
+    function insertQuoteFormat(textarea) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const value = textarea.value;
+        const selectedText = value.substring(start, end);
+        const lines = selectedText.split(/\r?\n/).map((line) => "> " + line);
+        const insertText = lines.join("\n");
+        textarea.value =
+            value.substring(0, start) + insertText + value.substring(end);
+        textarea.selectionStart = textarea.selectionEnd =
+            start + insertText.length;
+        textarea.focus();
+    }
+
+    function insertLinkFormat(textarea) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const value = textarea.value;
+        const selectedText = value.substring(start, end) || "link text";
+        const insertText = `[${selectedText}](url)`;
+        textarea.value =
+            value.substring(0, start) + insertText + value.substring(end);
+        const linkStart = start + insertText.indexOf("url");
+        textarea.selectionStart = linkStart;
+        textarea.selectionEnd = linkStart + 3;
+        textarea.focus();
+    }
+
+    function insertHeadingFormat(textarea) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const value = textarea.value;
+        const selectedText = value.substring(start, end);
+        const lines = selectedText.split(/\r?\n/).map((line) => {
+            return line.trim() ? "# " + line : line;
+        });
+        const insertText = lines.join("\n");
+        textarea.value =
+            value.substring(0, start) + insertText + value.substring(end);
+        textarea.selectionStart = textarea.selectionEnd =
+            start + insertText.length;
+        textarea.focus();
+    }
+
+    function insertMultilineCodeBlockFormat(textarea) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const value = textarea.value;
+        const selectedText = value.substring(start, end);
+        const insertText = "```\n" + selectedText + "\n```";
+        textarea.value =
+            value.substring(0, start) + insertText + value.substring(end);
+        if (!selectedText) {
+            textarea.selectionStart = textarea.selectionEnd = start + 4;
+        } else {
+            textarea.selectionStart = textarea.selectionEnd =
+                start + insertText.length;
+        }
+        textarea.focus();
+    }
+
+    function insertListFormat(textarea) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const value = textarea.value;
+        const selectedText = value.substring(start, end);
+        const lines = selectedText
+            .split(/\r?\n/)
+            .map((line) => "- " + line.trim());
+        const insertText = lines.join("\n");
+        textarea.value =
+            value.substring(0, start) + insertText + value.substring(end);
+        textarea.selectionStart = textarea.selectionEnd =
+            start + insertText.length;
+        textarea.focus();
+    }
+
+    if (boldBtn && noteTextarea) {
+        boldBtn.addEventListener("click", () => {
+            insertMarkdownFormat(noteTextarea, "**");
+        });
+    }
+    if (italicBtn && noteTextarea) {
+        italicBtn.addEventListener("click", () => {
+            insertMarkdownFormat(noteTextarea, "_");
+        });
+    }
+    if (codeBtn && noteTextarea) {
+        codeBtn.addEventListener("click", () => {
+            insertMarkdownFormat(noteTextarea, "`");
+        });
+    }
+    if (quoteBtn && noteTextarea) {
+        quoteBtn.addEventListener("click", () => {
+            insertQuoteFormat(noteTextarea);
+        });
+    }
+    if (linkBtn && noteTextarea) {
+        linkBtn.addEventListener("click", () => {
+            insertLinkFormat(noteTextarea);
+        });
+    }
+    if (headingBtn && noteTextarea) {
+        headingBtn.addEventListener("click", () => {
+            insertHeadingFormat(noteTextarea);
+        });
+    }
+    if (multicodeBtn && noteTextarea) {
+        multicodeBtn.addEventListener("click", () => {
+            insertMultilineCodeBlockFormat(noteTextarea);
+        });
+    }
+    if (listBtn && noteTextarea) {
+        listBtn.addEventListener("click", () => {
+            insertListFormat(noteTextarea);
+        });
+    }
+
+    if (editBoldBtn && editTextarea) {
+        editBoldBtn.addEventListener("click", () => {
+            insertMarkdownFormat(editTextarea, "**");
+        });
+    }
+    if (editItalicBtn && editTextarea) {
+        editItalicBtn.addEventListener("click", () => {
+            insertMarkdownFormat(editTextarea, "_");
+        });
+    }
+    if (editCodeBtn && editTextarea) {
+        editCodeBtn.addEventListener("click", () => {
+            insertMarkdownFormat(editTextarea, "`");
+        });
+    }
+    if (editQuoteBtn && editTextarea) {
+        editQuoteBtn.addEventListener("click", () => {
+            insertQuoteFormat(editTextarea);
+        });
+    }
+    if (editLinkBtn && editTextarea) {
+        editLinkBtn.addEventListener("click", () => {
+            insertLinkFormat(editTextarea);
+        });
+    }
+    if (editHeadingBtn && editTextarea) {
+        editHeadingBtn.addEventListener("click", () => {
+            insertHeadingFormat(editTextarea);
+        });
+    }
+    if (editMulticodeBtn && editTextarea) {
+        editMulticodeBtn.addEventListener("click", () => {
+            insertMultilineCodeBlockFormat(editTextarea);
+        });
+    }
+    if (editListBtn && editTextarea) {
+        editListBtn.addEventListener("click", () => {
+            insertListFormat(editTextarea);
+        });
+    }
 });
 
 function insertTaskTemplate(textarea) {
@@ -457,6 +694,7 @@ function createNote() {
         created: createdAt,
         lastEdited: createdAt,
         tasks: extractTasks(body),
+        pinned: false,
     };
 
     addNoteToPage(noteData);
@@ -585,11 +823,17 @@ function loadNotes() {
             notesList.removeChild(notesList.firstChild);
         }
 
+        const sortedNotes = [...notes].sort((a, b) => {
+            if (a.pinned && !b.pinned) return -1;
+            if (!a.pinned && b.pinned) return 1;
+            return new Date(b.created) - new Date(a.created);
+        });
+
         const fragment = document.createDocumentFragment();
 
-        notes.forEach((note) => {
+        sortedNotes.forEach((note) => {
             const noteCard = createNoteCard(note);
-            fragment.prepend(noteCard);
+            fragment.appendChild(noteCard);
         });
 
         document.getElementById("notes-list").appendChild(fragment);
@@ -658,8 +902,11 @@ function getRandomColor() {
 
 function createNoteCard(note) {
     const noteCard = document.createElement("div");
-    noteCard.className = `note-card note-${note.color}`;
+    noteCard.className = `note-card note-${note.color}${
+        note.pinned ? " pinned" : ""
+    }`;
     noteCard.dataset.id = note.id;
+    noteCard.dataset.pinned = note.pinned ? "true" : "false";
 
     noteCard.addEventListener("click", (e) => {
         if (
@@ -705,16 +952,23 @@ function createNoteCard(note) {
     const noteActions = document.createElement("div");
     noteActions.className = "note-actions";
 
-    const editBtn = document.createElement("button");
-    editBtn.className = "edit-note";
-    editBtn.innerHTML =
-        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>';
-    editBtn.setAttribute("aria-label", "Edit note");
-    editBtn.setAttribute("title", "Edit note");
-    editBtn.addEventListener("click", (e) => {
+    const pinBtn = document.createElement("button");
+    pinBtn.className = `pin-note${note.pinned ? " pinned" : ""}`;
+    pinBtn.innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="${
+            note.pinned ? "currentColor" : "none"
+        }" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11.9 22Q10 12 8 11L6 11Q6 5 10 5L13 5Q17 5 17 11L15 11Q13 12 11.9 22"></path>
+        </svg>
+    `;
+    pinBtn.setAttribute("aria-label", note.pinned ? "Unpin note" : "Pin note");
+    pinBtn.setAttribute("title", note.pinned ? "Unpin note" : "Pin note");
+    pinBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        openEditModal(note.id);
+        togglePinNote(note.id);
     });
+
+    noteActions.appendChild(pinBtn);
 
     const deleteBtn = document.createElement("button");
     deleteBtn.className = "delete-note";
@@ -727,7 +981,6 @@ function createNoteCard(note) {
         openDeleteModal(note.id);
     });
 
-    noteActions.appendChild(editBtn);
     noteActions.appendChild(deleteBtn);
 
     noteFooter.appendChild(noteActions);
@@ -773,6 +1026,94 @@ function createNoteCard(note) {
     });
 
     return noteCard;
+}
+
+function togglePinNote(noteId) {
+    const notes = JSON.parse(localStorage.getItem("notes") || "[]");
+    const noteIndex = notes.findIndex((n) => n.id === noteId);
+
+    if (noteIndex !== -1) {
+        notes[noteIndex].pinned = !notes[noteIndex].pinned;
+
+        notes[noteIndex].lastEdited = new Date();
+
+        localStorage.setItem("notes", JSON.stringify(notes));
+
+        const noteCard = document.querySelector(
+            `.note-card[data-id="${noteId}"]`
+        );
+        if (noteCard) {
+            const pinButton = noteCard.querySelector(".pin-note");
+
+            if (notes[noteIndex].pinned) {
+                noteCard.classList.add("pinned");
+                noteCard.dataset.pinned = "true";
+
+                pinButton.classList.add("pinned");
+                pinButton.setAttribute("title", "Unpin note");
+                pinButton.setAttribute("aria-label", "Unpin note");
+
+                const pinIcon = pinButton.querySelector("svg");
+                pinIcon.setAttribute("fill", "currentColor");
+                pinIcon.style.transform = "rotate(45deg)";
+
+                pinButton.style.transform = "scale(1.3)";
+                setTimeout(() => {
+                    pinButton.style.transform = "";
+                }, 300);
+            } else {
+                noteCard.classList.remove("pinned");
+                noteCard.dataset.pinned = "false";
+
+                pinButton.classList.remove("pinned");
+                pinButton.setAttribute("title", "Pin note");
+                pinButton.setAttribute("aria-label", "Pin note");
+
+                const pinIcon = pinButton.querySelector("svg");
+                pinIcon.setAttribute("fill", "none");
+                pinIcon.style.transform = "rotate(0deg)";
+
+                pinButton.style.transform = "scale(0.8)";
+                setTimeout(() => {
+                    pinButton.style.transform = "";
+                }, 300);
+            }
+
+            updateTimestamp(noteId);
+        }
+
+        if (noteCard) {
+            noteCard.style.transition =
+                "transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease";
+            noteCard.style.zIndex = "1";
+            noteCard.style.boxShadow = notes[noteIndex].pinned
+                ? "0 8px 20px rgba(0, 0, 0, 0.2)"
+                : "0 4px 12px rgba(0, 0, 0, 0.15)";
+            noteCard.style.transform = notes[noteIndex].pinned
+                ? "translateY(-10px)"
+                : "translateY(5px)";
+
+            setTimeout(() => {
+                noteCard.style.transform = "";
+                noteCard.style.boxShadow = "";
+                noteCard.style.zIndex = "";
+
+                rearrangeNotes();
+            }, 300);
+        } else {
+            rearrangeNotes();
+        }
+    }
+}
+
+function rearrangeNotes() {
+    if (window.noteMasonry) {
+        window.noteMasonry.refresh();
+
+        setTimeout(() => {
+            window.noteMasonry.refresh();
+        }, 300);
+    }
 }
 
 function formatDate(date) {
@@ -1603,4 +1944,34 @@ function ensureMasonryLayout() {
     } else {
         window.noteMasonry.refresh();
     }
+}
+
+/**
+ * Handles image insertion similar to link insertion but with image markdown
+ * @param {HTMLTextAreaElement} textarea - The textarea to insert the image markdown into
+ */
+function handleImageUpload(textarea) {
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const value = textarea.value;
+    const selectedText = value.substring(start, end) || "image description";
+
+    const insertText = `![${selectedText}](url)`;
+
+    textarea.value =
+        value.substring(0, start) + insertText + value.substring(end);
+
+    const urlStart = start + insertText.indexOf("url");
+    textarea.selectionStart = urlStart;
+    textarea.selectionEnd = urlStart + 3;
+    textarea.focus();
+
+    if (textarea.id === "edit-body") {
+        updateTaskPreview(textarea.value);
+    } else if (textarea.id === "note-body") {
+        updateMainFormTaskPreview(textarea.value);
+    }
+
+    textarea.style.height = "auto";
+    textarea.style.height = Math.min(300, textarea.scrollHeight) + "px";
 }
